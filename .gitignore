@@ -1,1 +1,6 @@
 *.zip
+.env
+.data/
+dist/
+node_modules/
+work/

@@ -1,0 +1,46 @@
+:root{--sky:#e8f5fc;--sky-strong:#bce3f6}
+.mini-card .content-photo{display:block;width:100%;height:220px;object-fit:contain;background:#e8f5fc;margin-bottom:18px;border-radius:4px}
+.mini-card .content-photo[src$="logo-mi-transparan.png"]{padding:48px;box-sizing:border-box}
+.prototype-label{display:block;color:#476775;font-size:12px;margin-bottom:10px}
+.soft{background:var(--sky)}
+.topbar{border-bottom:2px solid var(--sky-strong)}
+.kicker{color:#13729a}
+.mini-card{border-color:#cee6ef}
+.footer{border-top:5px solid var(--sky-strong)}
+.school-slideshow{height:calc(90svh - 76px);min-height:540px;max-height:850px;background:#163f39;touch-action:pan-y}
+.school-slideshow::before{display:none}
+.school-slideshow::after{inset:0;height:auto;background:rgba(8,26,28,.46);z-index:1}
+.hero-slides{position:absolute;inset:0}
+.hero-slide{position:absolute;width:100%;height:100%;inset:0;object-fit:cover;object-position:center;opacity:0;transition:opacity 1s ease;user-select:none;pointer-events:none}
+.hero-slide.is-active{opacity:1}
+.school-slideshow .hero-inner{display:flex;justify-content:center;min-height:100%;padding:70px 40px 100px;text-align:center}
+.school-slideshow .hero-copy{max-width:1000px;width:100%}
+.school-slideshow h1{max-width:1000px;font-size:54px;line-height:1.15;color:#fff;text-shadow:0 2px 12px #0005;margin:0 auto 26px}
+.school-slideshow .eyebrow{background:none;border:0;border-radius:0;color:#d1efff;padding:0;margin-bottom:20px}
+.school-slideshow .lead{color:#fff;font-size:21px;margin:0 auto 36px;max-width:700px}
+.school-slideshow .hero-actions{justify-content:center}
+.school-slideshow .btn-outline{color:white;border-color:#caeafa;background:#ffffff12}
+.school-slideshow .btn-outline:hover{background:#e8f5fc;color:#064f30}
+.hero-arrow,.hero-pause,.hero-dots button{cursor:pointer;border:1px solid #ffffff80;color:#fff;background:#10282055}
+.hero-arrow{position:absolute;z-index:4;top:50%;transform:translateY(-50%);width:44px;height:52px;font-size:24px;border-radius:4px}
+.hero-prev{left:18px}.hero-next{right:18px}
+.hero-controls{position:absolute;z-index:4;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:20px}
+.hero-dots{display:flex;gap:8px}.hero-dots button{width:36px;height:28px;position:relative;background:none;border:0;padding:0}
+.hero-dots button::after{content:'';position:absolute;left:0;right:0;top:12px;height:4px;background:#ffffff70}
+.hero-dots button[aria-pressed=true]::after{background:#bce3f6}
+.hero-pause{width:36px;height:36px;border-radius:4px;font-size:14px}
+.school-slideshow button:focus-visible{outline:3px solid #bce3f6;outline-offset:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:760px){.school-slideshow{height:calc(88svh - 76px);min-height:560px}.school-slideshow .hero-inner{padding:55px 36px 90px}.school-slideshow h1{font-size:36px}.school-slideshow .lead{font-size:18px}.school-slideshow .hero-actions{display:flex;flex-direction:column;align-items:center}.school-slideshow .btn{font-size:14px;max-width:100%;padding:14px 18px}.hero-arrow{width:30px;height:44px;font-size:18px}.hero-prev{left:6px}.hero-next{right:6px}.hero-slide{object-position:55% center}}
+@media(prefers-reduced-motion:reduce){.hero-slide{transition:none}}
+.home-page .topbar{position:fixed;top:0;left:0;width:100%;z-index:50;transition:background .25s,box-shadow .25s;border-bottom:0}
+.home-page:not(.header-scrolled) .topbar{background:linear-gradient(180deg,rgba(7,23,27,.65),rgba(7,23,27,.08));box-shadow:none;backdrop-filter:none}
+.home-page:not(.header-scrolled) .brand,.home-page:not(.header-scrolled) .brand strong,.home-page:not(.header-scrolled) .brand small,.home-page:not(.header-scrolled) .nav-links>a:not(.btn),.home-page:not(.header-scrolled) .nav-dropdown summary{color:white}
+.home-page:not(.header-scrolled) .nav-links>a[aria-current]{background:#ffffff18}
+.home-page:not(.header-scrolled) .menu-toggle span{background:white}
+.home-page .school-slideshow{height:100svh;min-height:100svh;max-height:none;margin:0;padding:0;border-radius:0}
+.home-page .school-slideshow .hero-inner{height:100%;min-height:100%;box-sizing:border-box;padding:130px 48px 90px;align-items:center}
+.home-page main{padding-top:0}
+@media(max-width:1040px){.home-page:not(.header-scrolled) .nav-links.open{background:#153c32}.home-page:not(.header-scrolled) .nav-submenu{background:#fff}}
+@media(max-width:760px){.home-page .school-slideshow h1{font-size:clamp(27px,7vw,36px)}.home-page .school-slideshow .hero-inner{padding:110px 35px 75px}.home-page .school-slideshow .lead{margin-bottom:20px}.home-page .school-slideshow .eyebrow{margin-bottom:12px}}
+@media(max-height:560px) and (orientation:landscape){.home-page .school-slideshow h1{font-size:30px;margin-bottom:12px}.home-page .school-slideshow .eyebrow{display:none}.home-page .school-slideshow .lead{font-size:16px;margin-bottom:16px}.home-page .school-slideshow .hero-inner{padding-top:85px;padding-bottom:60px}}

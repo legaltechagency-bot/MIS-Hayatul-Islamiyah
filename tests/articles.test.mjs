@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHandler} from '../src/api.mjs';
+test('article lifecycle: drafts private, publish, update, unpublish and delete',async()=>{
+ const rows=new Map();const store={async list(k){return [...rows.values()].filter(r=>r.kind===k).map(r=>({id:r.id,...r.data}));},async put(kind,id,data){rows.set(id,{kind,id,data});},async remove(k,id){rows.delete(id);}};
+ const handler=createHandler(store,n=>({ADMIN_PASSWORD:'test-password',SESSION_SECRET:'a'.repeat(40)}[n]));
+ const call=(path,method='GET',body,cookie)=>handler(new Request('http://localhost/api/'+path,{method,headers:cookie?{cookie}:{},...(body?{body:JSON.stringify(body)}:{})}));
+ const login=await call('login','POST',{password:'test-password'}),cookie=login.headers.get('set-cookie').split(';')[0];
+ const article={title:'Kegiatan Pramuka',description:'Ringkasan',body:'Isi kegiatan sekolah.',date:'2026-10-19',category:'Kegiatan',status:'draft'};
+ assert.equal((await call('content/articles','POST',article)).status,401);
+ const created=await call('content/articles','POST',article,cookie);assert.equal(created.status,200);const {id}=await created.json();
+ assert.equal((await (await call('content')).json()).articles.length,0);
+ assert.equal((await (await call('content','GET',undefined,cookie)).json()).articles[0].status,'draft');
+ assert.equal((await call('content/articles/'+id,'PUT',{...article,status:'published',body:''},cookie)).status,400);
+ await call('content/articles/'+id,'PUT',{...article,status:'published'},cookie);
+ assert.equal((await (await call('content')).json()).articles[0].title,article.title);
+ await call('content/articles/'+id,'PUT',{...article,title:'Judul diperbarui',status:'published'},cookie);
+ assert.equal((await (await call('content')).json()).articles[0].title,'Judul diperbarui');
+ await call('content/articles/'+id,'PUT',article,cookie);
+ assert.equal((await (await call('content')).json()).articles.length,0);
+ await call('content/articles/'+id,'DELETE',undefined,cookie);
+ assert.equal((await (await call('content','GET',undefined,cookie)).json()).articles.length,0);
+});

@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHandler} from '../src/api.mjs';
+test('fixed positions reject hierarchy changes; teachers support multiple classes and CRUD',async()=>{
+ const rows=new Map();const store={async list(k){return [...rows.values()].filter(r=>r.kind===k).map(r=>({id:r.id,...r.data}));},async put(kind,id,data){rows.set(kind+id,{kind,id,data});},async remove(k,id){rows.delete(k+id);}};
+ const handler=createHandler(store,n=>({ADMIN_PASSWORD:'test',SESSION_SECRET:'a'.repeat(40)}[n]));let cookie='';
+ const call=(p,method='GET',body)=>handler(new Request('http://localhost/api/'+p,{method,headers:{cookie},...(body?{body:JSON.stringify(body)}:{})}));
+ assert.equal((await call('content/organization/organization-0-0','PUT',{title:'Unauthorized'})).status,401);
+ cookie=(await call('login','POST',{password:'test'})).headers.get('set-cookie').split(';')[0];
+ assert.equal((await call('content/organization','POST',{title:'New'})).status,405);
+ assert.equal((await call('content/organization/organization-0-0','DELETE')).status,405);
+ assert.equal((await call('content/organization/organization-0-0','PUT',{title:'Nama baru',description:'Changed',level:9,order:99})).status,200);
+ const position=(await (await call('content')).json()).organization.find(r=>r.id==='organization-0-0');assert.equal(position.title,'Nama baru');assert.equal(position.description,'Kepala Yayasan');assert.equal(position.level,0);
+ const teacher={title:'Guru Contoh',role:'Guru Mata Pelajaran',classes:[1,2,6],description:'Matematika'};
+ assert.equal((await call('content/teachers','POST',{...teacher,classes:[7]})).status,400);
+ const created=await call('content/teachers','POST',teacher);assert.equal(created.status,200);const {id}=await created.json();
+ assert.deepEqual((await (await call('content')).json()).teachers.find(r=>r.id===id).classes,[1,2,6]);
+ assert.equal((await call('content/teachers/'+id,'PUT',{...teacher,title:'Guru Baru'})).status,200);
+ await call('content/teachers/'+id,'DELETE');assert(!(await (await call('content')).json()).teachers.some(r=>r.id===id));
+});

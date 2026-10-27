@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHandler} from '../src/api.mjs';
+const records=new Map();
+const store={async list(k){return [...records.values()].filter(r=>r.kind===k).map(r=>({id:r.id,...r.data}));},async put(kind,id,data){records.set(id,{kind,id,data});},async remove(k,id){if(records.get(id)?.kind===k)records.delete(id);}};
+const handler=createHandler(store,n=>({ADMIN_PASSWORD:'testing-only-long-password',SESSION_SECRET:'test-secret-12345678901234567890123456789'}[n]));
+const request=(path,method='GET',body,cookie)=>handler(new Request('http://localhost/api/'+path,{method,headers:{...(cookie?{cookie}:{}),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}));
+test('private admissions, authenticated CRUD, persistent content and validation',async()=>{
+ assert.equal((await request('registrations')).status,401);
+ assert.equal((await request('content/programs','POST',{title:'Unauthorized'})).status,401);
+ assert.equal((await request('login','POST',{password:'wrong'})).status,401);
+ const login=await request('login','POST',{password:'testing-only-long-password'});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];assert.match(login.headers.get('set-cookie'),/HttpOnly/);
+ assert.equal((await request('registrations','POST',{})).status,400);
+ const submission=await request('registrations','POST',{name:'Siswa Uji',birthplace:'Depok',birthdate:'2020-01-01',gender:'Perempuan',parent:'Wali Uji',phone:'089900000000',address:'Alamat uji',consent:true});assert.equal(submission.status,201);const {id}=await submission.json();
+ const rows=await (await request('registrations','GET',undefined,cookie)).json();assert.equal(rows[0].id,id);
+ await request('registrations/'+id,'PUT',{status:'Diterima'},cookie);assert.equal((await store.list('registrations'))[0].status,'Diterima');
+ assert.equal((await request('content/gallery','POST',{title:'Invalid',image:'javascript:alert(1)'},cookie)).status,400);
+ const created=await (await request('content/programs','POST',{title:'Program uji',description:'Baru'},cookie)).json();let publicData=await (await request('content')).json();assert(publicData.programs.some(p=>p.id===created.id));assert(!('registrations'in publicData));
+ await request('content/programs/'+created.id,'DELETE',undefined,cookie);publicData=await (await request('content')).json();assert(!publicData.programs.some(p=>p.id===created.id));
+ await request('content/programs/program-0','DELETE',undefined,cookie);publicData=await (await request('content')).json();assert(!publicData.programs.some(p=>p.id==='program-0'));
+ const cross=await handler(new Request('http://localhost/api/login',{method:'POST',headers:{Origin:'https://other.example'},body:'{}'}));assert.equal(cross.status,403);
+ await request('registrations/'+id,'DELETE',undefined,cookie);assert.equal((await store.list('registrations')).length,0);
+});

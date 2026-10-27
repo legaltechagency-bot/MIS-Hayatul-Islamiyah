@@ -1,0 +1,13 @@
+import {createServer} from 'node:http';
+import {readFile,mkdir} from 'node:fs/promises';
+import {resolve,extname} from 'node:path';
+import {DatabaseSync} from 'node:sqlite';
+import {createHandler} from './src/api.mjs';
+import {createSupabaseStore} from './src/supabase-store.mjs';
+const dataDirectory=process.env.DATA_DIR||'.data';
+await mkdir(dataDirectory,{recursive:true});
+const db=new DatabaseSync(resolve(dataDirectory,'school.sqlite'));db.exec('CREATE TABLE IF NOT EXISTS records(id TEXT PRIMARY KEY,kind TEXT,data TEXT)');
+const store={async list(k){return db.prepare('SELECT id,data FROM records WHERE kind=?').all(k).map(r=>({id:r.id,...JSON.parse(r.data)}));},async put(k,id,data){db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data WHERE records.kind=excluded.kind').run(id,k,JSON.stringify(data));},async remove(k,id){db.prepare('DELETE FROM records WHERE id=? AND kind=?').run(id,k);}};
+const activeStore=process.env.DATA_BACKEND==='supabase'?createSupabaseStore(n=>process.env[n]):store;
+const handler=createHandler(activeStore,n=>process.env[n]);const root=resolve('dist');
+createServer(async(req,res)=>{try{const url=new URL(req.url,'http://'+(req.headers.host||'localhost:'+ (process.env.PORT||3000)));if(url.pathname.startsWith('/api/')){let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>2000000){res.writeHead(413).end();return;}chunks.push(chunk);}const response=await handler(new Request(url,{method:req.method,headers:req.headers,...(!['GET','HEAD'].includes(req.method)?{body:Buffer.concat(chunks)}:{})}),{ip:req.socket.remoteAddress});res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));return;}let path=decodeURIComponent(url.pathname);if(path.endsWith('/'))path+='index.html';const full=resolve(root,'.'+path);if(!full.startsWith(root+'/')&&!full.startsWith(root+'\\')){res.writeHead(403).end();return;}const file=await readFile(full);const types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.jpg':'image/jpeg','.jpeg':'image/jpeg','.json':'application/json','.ico':'image/x-icon','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};res.writeHead(200,{'Content-Type':types[extname(full).toLowerCase()]||'application/octet-stream'});res.end(file);}catch{res.writeHead(404).end('Halaman tidak ditemukan');}}).listen(process.env.PORT||3000,()=>console.log('Website: http://localhost:'+(process.env.PORT||3000)));
