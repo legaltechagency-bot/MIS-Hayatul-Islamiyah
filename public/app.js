@@ -1,3 +1,4 @@
+import {updateDetailSeo} from './seo.js';
 import {renderHero} from './hero.js';
 import {exportRegistrations} from './registration-export.js';
 import {renderTeachers,editPerson} from './people.js';
@@ -64,4 +65,5 @@ function edit(id){if(['organization','teachers'].includes(current))return editPe
  $('#logout').onclick=async()=>{try{await api('logout',{method:'POST'});location.reload();}catch(error){report('Gagal keluar. '+error.message,true);}};await loggedIn().catch(e=>{report(navigator.onLine?e.message:'Sambungkan internet untuk masuk dan mengelola data.',true);$('#connection').textContent=navigator.onLine?'Koneksi gagal':'Tidak terhubung';});
  let installPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#install').hidden=false;});$('#install').onclick=async()=>{await installPrompt?.prompt();$('#install').hidden=true;};
 }
+updateDetailSeo(content);
 document.documentElement.dataset.appReady='true';
