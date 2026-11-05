@@ -41,3 +41,7 @@ seed.organization=seed.organization.filter(person=>person.level<5);
 seed.teachers=[];
 
 seed.hero=[{id:'hero-main',title:'MIS Hayatul Islamiyah Cinangka',subtitle:'Website Resmi Madrasah',tagline:'Berilmu, beriman, dan berakhlak mulia.',description:'',photos:['assets/hero-campus-blue.jpg','assets/hero-campus-front.jpg','assets/hero-classroom.jpg']}];
+
+// Preserve existing position IDs when inserting the teachers council.
+seed.organization.forEach(p=>{if(p.id==='organization-4-1')p.order=2;});
+seed.organization.push({id:'organization-dewan-guru',title:'Dewan Guru',description:'Dewan Guru',image:'assets/organization-placeholder.svg',level:4,order:1});
