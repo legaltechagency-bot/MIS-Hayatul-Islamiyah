@@ -45,7 +45,7 @@ const result={};for(const kind of kinds){const rows=await store.list(kind);const
     if(body.website)return json({error:'Pendaftaran ditolak'},400);
     const data=Object.fromEntries(['name','birthplace','birthdate','gender','parent','phone','address','origin'].map(k=>[k,text(body[k],1000)]));
     if(!data.name||!data.parent||!data.address||!data.birthplace||!['Laki-laki','Perempuan'].includes(data.gender)||!/^\+?[0-9 -]{9,18}$/.test(data.phone)||!/^(0|62)\d{8,13}$/.test(data.phone.replace(/[+ -]/g,''))||!calendarDate(data.birthdate)||Date.parse(data.birthdate)>Date.now()||body.consent!==true)return json({error:'Lengkapi data dan persetujuan pendaftaran dengan tanggal dan nomor WhatsApp yang valid.'},400);
-    const id=randomUUID();await store.put('registrations',id,{...data,status:'Baru',createdAt:new Date().toISOString()});return json({id,ok:true},201);
+    const id=randomUUID(),createdAt=new Date().toISOString();const registrationNumber='PMBM-'+new Intl.DateTimeFormat('en',{year:'numeric',timeZone:'Asia/Jakarta'}).format(new Date(createdAt))+'-'+id.replaceAll('-','').slice(0,10).toUpperCase();await store.put('registrations',id,{...data,registrationNumber,status:'Baru',createdAt});return json({id,registrationNumber,ok:true},201);
    }
    if(!authed)return json({error:'Silakan login sebagai admin'},401);
    if(path[0]==='registrations'){

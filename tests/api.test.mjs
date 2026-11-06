@@ -11,8 +11,8 @@ test('private admissions, authenticated CRUD, persistent content and validation'
  assert.equal((await request('login','POST',{password:'wrong'})).status,401);
  const login=await request('login','POST',{password:'testing-only-long-password'});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];assert.match(login.headers.get('set-cookie'),/HttpOnly/);
  assert.equal((await request('registrations','POST',{})).status,400);
- const submission=await request('registrations','POST',{name:'Siswa Uji',birthplace:'Depok',birthdate:'2020-01-01',gender:'Perempuan',parent:'Wali Uji',phone:'089900000000',address:'Alamat uji',consent:true});assert.equal(submission.status,201);const {id}=await submission.json();
- const rows=await (await request('registrations','GET',undefined,cookie)).json();assert.equal(rows[0].id,id);
+ const submission=await request('registrations','POST',{name:'Siswa Uji',birthplace:'Depok',birthdate:'2020-01-01',gender:'Perempuan',parent:'Wali Uji',phone:'089900000000',address:'Alamat uji',consent:true});assert.equal(submission.status,201);const {id,registrationNumber}=await submission.json();assert.match(registrationNumber,/^PMBM-\d{4}-[0-9A-F]{10}$/);assert(registrationNumber.length<id.length);
+ const rows=await (await request('registrations','GET',undefined,cookie)).json();assert.equal(rows[0].id,id);assert.equal(rows[0].registrationNumber,registrationNumber);
  await request('registrations/'+id,'PUT',{status:'Diterima'},cookie);assert.equal((await store.list('registrations'))[0].status,'Diterima');
  assert.equal((await request('content/gallery','POST',{title:'Invalid',image:'javascript:alert(1)'},cookie)).status,400);
  const created=await (await request('content/programs','POST',{title:'Program uji',description:'Baru'},cookie)).json();let publicData=await (await request('content')).json();assert(publicData.programs.some(p=>p.id===created.id));assert(!('registrations'in publicData));
